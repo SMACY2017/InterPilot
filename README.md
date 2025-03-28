@@ -159,7 +159,7 @@ pip install -r requirements.txt
 - **SPEAKER_DEVICE_INDEX** 与 **MIC_DEVICE_INDEX**：录音设备的索引，视具体系统配置而定。
 - **OUTPUT_DIR**：存储录音文件的目录。  
 - **WHISPER_MODEL_SIZW**：[whisper](https://github.com/openai/whisper)模型的大小，可选项为tiny `base`、`small`、`medium`、`large`、`turbo`。
-- **DEFAULT_PROMPT**：发送给 LLM 的默认提示词，可根据面试场景调整。
+- **DEFAULT_PROMPT**：是**拼接**在发送给 LLM 的文本最前端的默认提示词，可根据使用场景调整，例如“你是一个XX方面的专家，你马上获取到的文本来自于XX，请你据此给出合理简洁的回答：”
 
 ### 具体配置说明
 
