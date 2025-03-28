@@ -161,15 +161,13 @@ class LoopbackRecorder:
                 dev = p.get_device_info_by_index(i)
                 if dev["isLoopbackDevice"] > 0:
                     print(f"[{dev['index']}] {dev['name']} (Loopback: {dev['maxInputChannels']})")
-
 if __name__ == "__main__":
     # 列出设备
     LoopbackRecorder.list_devices()
-
-    # 测试指定设备录音（使用你的耳机loopback设备37）
+    
     try:
-        recorder = LoopbackRecorder(device_index=37)  # 明确指定设备索引
-        recorder.start_recording("test_record.mp3")
+        recorder = LoopbackRecorder()  # 明确指定设备索引
+        recorder.start_recording("output/test_record.wav")
         recorder.record(duration=5)  # 录制5秒
         recorder.stop_recording()
     except Exception as e:
