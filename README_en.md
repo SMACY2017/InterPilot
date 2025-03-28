@@ -20,6 +20,36 @@ Through testing, this tool can leverage third-party utilities to hide its interf
 
 ![InterPilot](doc_pic/logo.png)
 
+## Table of Contents
+
+- [InterPilot](#interpilot)
+  - [Table of Contents](#table-of-contents)
+  - [Inspiration](#inspiration)
+  - [Features](#features)
+  - [Project Structure](#project-structure)
+  - [Installation \& Dependencies](#installation--dependencies)
+    - [System Dependencies](#system-dependencies)
+    - [Python Dependencies](#python-dependencies)
+  - [Configuration](#configuration)
+    - [Detailed Configuration Instructions](#detailed-configuration-instructions)
+      - [API](#api)
+      - [Recording Device Index](#recording-device-index)
+  - [Usage Instructions](#usage-instructions)
+    - [1. Testing Individual Modules](#1-testing-individual-modules)
+    - [2. Launching the Graphical User Interface](#2-launching-the-graphical-user-interface)
+    - [3. Notes](#3-notes)
+    - [4. Handling Screen Sharing and UI Hiding (if you wish to keep the tool hidden during meetings)](#4-handling-screen-sharing-and-ui-hiding-if-you-wish-to-keep-the-tool-hidden-during-meetings)
+  - [TODO](#todo)
+  - [Contribution](#contribution)
+  - [⚠️ Disclaimer](#️-disclaimer)
+  - [License](#license)
+
+
+
+## Inspiration
+
+Inspired by [YT-Chowww/InterviewCopilot](https://github.com/YT-Chowww/InterviewCopilot)
+
 ## Features
 
 - **Audio Capture**  
@@ -176,7 +206,7 @@ python main_cmd.py
 
 ### 3. Notes
 
-- **Recording Devices**: Depending on your system, you may need to adjust `SPEAKER_DEVICE_INDEX` and `MIC_DEVICE_INDEX` in `config.ini`. By default, because the recorded sound is from the speaker (which you hear), it will not be recorded when there is no sound playing. Therefore, some audio or video must be played to obtain the audio. You can play a video during testing.
+- **Recording Devices**: Depending on your system, you may need to adjust `SPEAKER_DEVICE_INDEX` and `MIC_DEVICE_INDEX` in `config.ini`.
 - **Environment Variables**: Ensure FFmpeg is installed and added to the PATH; otherwise, audio processing might be affected.
 - **Testing**: It is recommended to test each module individually to confirm that audio recording, transcription, and LLM response work correctly before running the full GUI.
 
@@ -205,9 +235,6 @@ python main_cmd.py
 
 Contributions are welcome! Feel free to submit issues or pull requests to help improve the tool. If you have any suggestions or improvements, please contact us.
 
-## Inspiration
-
-Inspired by [YT-Chowww/InterviewCopilot](https://github.com/YT-Chowww/InterviewCopilot)
 
 ## ⚠️ Disclaimer
 
@@ -223,29 +250,3 @@ Users are solely responsible for any legal consequences resulting from misuse. B
 This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/) license.  
 This means you are free to share and modify the project’s contents **for non-commercial purposes only**.
 ```
-
----
-
-### 如何在 README 开头添加常见的语言跳转链接
-
-通常，在 README 的最开始部分加入语言跳转链接可以采用下面这种格式（假设你有两个版本的 README）：
-
-```markdown
-[English](README.md) | [中文](README.zh.md)
-```
-
-你只需确保将英文版 README 命名为 `README.md`，中文版 README 命名为 `README.zh.md`（或其他你喜欢的命名方式），然后在两份文档的顶部都加入这行链接。这样，访问者可以通过点击相应链接在不同语言版本之间切换。
-
-### 关于 README 中可点击图标（如 Windows Platform、MIT License 等）的实现
-
-这些图标通常并非 GitHub 自动提供，而是通过 Markdown 中的图片链接配合第三方徽章服务（如 [shields.io](https://shields.io/)）实现的。你可以生成自定义徽章并在 README 中插入，如下示例：
-
-```markdown
-
-```
-
-这样，徽章图片不仅美观，还可以点击跳转到对应的官方网站或许可证页面。你可以在 [shields.io](https://shields.io/) 上自定义生成更多类似的徽章。
-
----
-
-以上内容提供了英文版 README 的完整示例、如何添加语言跳转链接的说明，以及可点击图标（徽章）的实现方法。你可以根据需要调整和完善。
