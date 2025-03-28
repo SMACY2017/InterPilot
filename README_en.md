@@ -176,7 +176,7 @@ python main_cmd.py
 
 ### 3. Notes
 
-- **Recording Devices**: Depending on your system, you may need to adjust `SPEAKER_DEVICE_INDEX` and `MIC_DEVICE_INDEX` in `config.ini`.
+- **Recording Devices**: Depending on your system, you may need to adjust `SPEAKER_DEVICE_INDEX` and `MIC_DEVICE_INDEX` in `config.ini`. By default, because the recorded sound is from the speaker (which you hear), it will not be recorded when there is no sound playing. Therefore, some audio or video must be played to obtain the audio. You can play a video during testing.
 - **Environment Variables**: Ensure FFmpeg is installed and added to the PATH; otherwise, audio processing might be affected.
 - **Testing**: It is recommended to test each module individually to confirm that audio recording, transcription, and LLM response work correctly before running the full GUI.
 
