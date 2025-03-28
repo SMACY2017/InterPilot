@@ -25,5 +25,5 @@ class SpeechTranscriber:
 
 if __name__ == "__main__":
     transcriber = SpeechTranscriber()
-    text = transcriber.transcribe("output\interview_1743086928.wav")
+    text = transcriber.transcribe("output/test_record.wav")
     print("转写结果:", text)
