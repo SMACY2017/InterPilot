@@ -156,7 +156,7 @@ Please modify the `config.ini` file in the root directory according to your setu
 - **SPEAKER_DEVICE_INDEX** and **MIC_DEVICE_INDEX**: The indices of the recording devices, depending on your system configuration.
 - **OUTPUT_DIR**: Directory to store the recorded audio files.
 - **WHISPER_MODEL_SIZE**: Size of the Whisper model. Options include tiny, `base`, `small`, `medium`, `large`, `turbo`.
-- **DEFAULT_PROMPT**: The default prompt sent to the LLM, which can be adjusted for your interview scenarios.
+- **DEFAULT_PROMPT**: It is the default prompt word **spliced at the forefront of the text sent to LLM**, which can be adjusted according to the usage scenario. For example, "You are an expert in XX, and the text you are about to receive comes from XX. Please provide a reasonable and concise answer based on this:"
 
 ### Detailed Configuration Instructions
 
