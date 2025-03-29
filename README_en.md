@@ -229,6 +229,7 @@ python main_cmd.py
 - [ ] Add more detailed usage examples or screenshots (GUI operation examples, terminal output, etc.) in the README.
 - [ ] Integrate a voice generation feature (TTS) – already tested and pending integration.
 - [ ] Add functionality for simultaneous recognition of both microphone and speaker audio.
+- [ ] Add a feature to upload screenshots and send them to the LLM.
 - [ ] Implement the taskbar icon hiding feature.
 
 ## Contribution
