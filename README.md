@@ -36,10 +36,10 @@
       - [API](#api)
       - [录音设备索引](#录音设备索引)
   - [使用说明](#使用说明)
-    - [1. 单独测试模块](#1-单独测试模块)
-    - [2. 启动图形界面](#2-启动图形界面)
-    - [3. 注意事项](#3-注意事项)
-    - [4. 应对在线会议等软件的屏幕共享功能（如果你不想让别人看到本工具）](#4-应对在线会议等软件的屏幕共享功能如果你不想让别人看到本工具)
+    - [单独测试模块](#单独测试模块)
+    - [启动图形界面](#启动图形界面)
+    - [注意事项](#注意事项)
+    - [应对在线会议等软件的屏幕共享功能（如果你不想让别人看到本工具）](#应对在线会议等软件的屏幕共享功能如果你不想让别人看到本工具)
   - [待补充 / TODO](#待补充--todo)
   - [贡献](#贡献)
   - [免责声明 / Disclaimer](#免责声明--disclaimer)
@@ -156,7 +156,7 @@ pip install -r requirements.txt
 - **API_URL**：LLM API 的地址。  
 - **API_KEY**：访问 API 的密钥。  
 - **MODEL**：调用的模型名称（例如 `deepseek-ai/DeepSeek-R1-Distill-Qwen-7B`，其他模型名称可以访问硅基流动（[官网链接](https://cloud.siliconflow.cn/i/TzKmtDJH)）-模型广场查看。  
-- **SPEAKER_DEVICE_INDEX** 与 **MIC_DEVICE_INDEX**：录音设备的索引，视具体系统配置而定。
+- **SPEAKER_DEVICE_INDEX** 与 **MIC_DEVICE_INDEX**：录音设备的索引，视具体系统配置而定。建议阅读[录音设备索引](#录音设备索引)和[注意事项](#注意事项)部分。
 - **OUTPUT_DIR**：存储录音文件的目录。  
 - **WHISPER_MODEL_SIZW**：[whisper](https://github.com/openai/whisper)模型的大小，可选项为tiny `base`、`small`、`medium`、`large`、`turbo`。
 - **DEFAULT_PROMPT**：是**拼接**在发送给 LLM 的文本最前端的默认提示词，可根据使用场景调整，例如“你是一个XX方面的专家，你马上获取到的文本来自于XX，请你据此给出合理简洁的回答：”
@@ -177,7 +177,7 @@ python src/audio_capture.py
 
 ## 使用说明
 
-### 1. 单独测试模块
+### 单独测试模块
 
 项目各核心模块（录音、转写、LLM 客户端）均包含简单的测试代码。你可以分别运行下列文件，检查各功能模块是否正常运行：
 
@@ -186,7 +186,7 @@ python src/audio_capture.py
 - `src/llm_client.py` —— 用于实现 LLM 客户端功能（调用 LLM API 并返回回答）。
 
 
-### 2. 启动图形界面
+### 启动图形界面
 
 运行 `main.py` 启动完整的面试助手 GUI：
 
@@ -209,13 +209,13 @@ python main.py
 python main_cmd.py
 ```
 
-### 3. 注意事项
+### 注意事项
 
 - **录音设备**：根据设备不同，可能需要调整 `config.ini` 中的 `SPEAKER_DEVICE_INDEX` 和 `MIC_DEVICE_INDEX` 参数。 默认设置下，因为录制的是扬声器（你听到）的声音，所以在没有声音播放的时候，是不会录制的，所以必须播放一些音频或者视频，才能获取到音频。测试的时候可以放个视频。 
 - **环境变量**：确保 FFmpeg 已安装并已添加到环境变量 PATH 中，否则可能会影响音频处理。  
 - **测试验证**：建议先单独测试各模块，确认音频录制、转写和 LLM 回答均正常后再启动 GUI 整体运行。
 
-### 4. 应对在线会议等软件的屏幕共享功能（如果你不想让别人看到本工具）
+### 应对在线会议等软件的屏幕共享功能（如果你不想让别人看到本工具）
 
 使用[shalzuth/WindowSharingHider](https://github.com/shalzuth/WindowSharingHider)隐藏UI界面————太棒的工具了！又方便又好用！
 

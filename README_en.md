@@ -35,10 +35,10 @@ Through testing, this tool can leverage third-party utilities to hide its interf
       - [API](#api)
       - [Recording Device Index](#recording-device-index)
   - [Usage Instructions](#usage-instructions)
-    - [1. Testing Individual Modules](#1-testing-individual-modules)
-    - [2. Launching the Graphical User Interface](#2-launching-the-graphical-user-interface)
-    - [3. Notes](#3-notes)
-    - [4. Handling Screen Sharing and UI Hiding (if you wish to keep the tool hidden during meetings)](#4-handling-screen-sharing-and-ui-hiding-if-you-wish-to-keep-the-tool-hidden-during-meetings)
+    - [Testing Individual Modules](#testing-individual-modules)
+    - [Launching the Graphical User Interface](#launching-the-graphical-user-interface)
+    - [Notes](#notes)
+    - [Handling Screen Sharing and UI Hiding (if you wish to keep the tool hidden during meetings)](#handling-screen-sharing-and-ui-hiding-if-you-wish-to-keep-the-tool-hidden-during-meetings)
   - [TODO](#todo)
   - [Contribution](#contribution)
   - [⚠️ Disclaimer](#️-disclaimer)
@@ -153,7 +153,7 @@ Please modify the `config.ini` file in the root directory according to your setu
 - **API_URL**: The LLM API endpoint.
 - **API_KEY**: Your API access key.
 - **MODEL**: The model name to be used (e.g., `deepseek-ai/DeepSeek-R1-Distill-Qwen-7B`). Other model names can be viewed on the Siliconflow website (see [Official Link](https://cloud.siliconflow.cn/i/TzKmtDJH)).
-- **SPEAKER_DEVICE_INDEX** and **MIC_DEVICE_INDEX**: The indices of the recording devices, depending on your system configuration.
+- **SPEAKER_DEVICE_INDEX** and **MIC_DEVICE_INDEX**: The indices of the recording devices, depending on your system configuration. It is recommended to read the [Recording Device Index](#recording-device-index) and [Notes](#notes) sections.
 - **OUTPUT_DIR**: Directory to store the recorded audio files.
 - **WHISPER_MODEL_SIZE**: Size of the Whisper model. Options include tiny, `base`, `small`, `medium`, `large`, `turbo`.
 - **DEFAULT_PROMPT**: It is the default prompt word **spliced at the forefront of the text sent to LLM**, which can be adjusted according to the usage scenario. For example, "You are an expert in XX, and the text you are about to receive comes from XX. Please provide a reasonable and concise answer based on this:"
@@ -174,7 +174,7 @@ python src/audio_capture.py
 
 ## Usage Instructions
 
-### 1. Testing Individual Modules
+### Testing Individual Modules
 
 Each core module (recording, transcription, and LLM client) contains simple test code. You can run the following files individually to verify that each module works correctly:
 
@@ -182,7 +182,7 @@ Each core module (recording, transcription, and LLM client) contains simple test
 - `src/transcriber.py`  — Implements audio transcription (the model will be automatically downloaded on first run).
 - `src/llm_client.py` — Implements the LLM client (calls the LLM API and returns responses).
 
-### 2. Launching the Graphical User Interface
+### Launching the Graphical User Interface
 
 Run `main.py` to launch the full InterPilot GUI:
 
@@ -204,13 +204,13 @@ If you prefer running the tool in a command-line mode, you can use `main_cmd.py`
 python main_cmd.py
 ```
 
-### 3. Notes
+### Notes
 
 - **Recording Devices**: Depending on your system, you may need to adjust `SPEAKER_DEVICE_INDEX` and `MIC_DEVICE_INDEX` in `config.ini`.
 - **Environment Variables**: Ensure FFmpeg is installed and added to the PATH; otherwise, audio processing might be affected.
 - **Testing**: It is recommended to test each module individually to confirm that audio recording, transcription, and LLM response work correctly before running the full GUI.
 
-### 4. Handling Screen Sharing and UI Hiding (if you wish to keep the tool hidden during meetings)
+### Handling Screen Sharing and UI Hiding (if you wish to keep the tool hidden during meetings)
 
 - Use [shalzuth/WindowSharingHider](https://github.com/shalzuth/WindowSharingHider) to hide the UI—an excellent tool that is both convenient and effective!
 - **Taskbar Icon Hiding**:
