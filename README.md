@@ -21,6 +21,8 @@
 
 ![InterPilot](doc_pic/logo.png)
 
+如果对你有所帮助，可以通过[微信](doc_pic/QR.jpg)扫码打赏，感谢你的支持！
+![赞助](doc_pic/QR.jpg)
 ## 目录
 
 - [InterPilot](#interpilot)
