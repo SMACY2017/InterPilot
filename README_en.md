@@ -4,6 +4,8 @@
 
 [English](README_en.md) | [中文](README.md)
 
+> **The upgraded edition is now available:** [InterPilot Pro](https://github.com/SMACY2017/InterPilot_Pro) adds dual-channel live transcription for microphone and system audio, PDF and screen context, global hotkeys, low-latency streaming hints, a redesigned UI, and keyless local OpenAI-compatible endpoints. This repository continues to host the original classic edition.
+
 [![Windows](https://img.shields.io/badge/Windows-Platform-blue?logo=windows)](https://www.microsoft.com/windows)
 [![Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://img.shields.io/badge/License-CC%20BY--NC%204.0-blue?logo=creativecommons)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Python](https://img.shields.io/badge/Python-3.10-blue?logo=python)](https://www.python.org/)

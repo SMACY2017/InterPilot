@@ -4,6 +4,8 @@
 
 [English](README_en.md) | [中文](README.md)
 
+> **升级版已发布：** [InterPilot Pro](https://github.com/SMACY2017/InterPilot_Pro) 增加了麦克风与系统声音双通道实时转写、论文 PDF 与屏幕截图辅助、全局快捷键、低延迟流式提示、重新设计的 UI，以及支持无 API key 的本地 OpenAI 兼容接口。本仓库继续保留原始经典版本。
+
 [![Windows](https://img.shields.io/badge/Windows-Platform-blue?logo=windows)](https://www.microsoft.com/windows)
 [![Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://img.shields.io/badge/License-CC%20BY--NC%204.0-blue?logo=creativecommons)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Python](https://img.shields.io/badge/Python-3.10-blue?logo=python)](https://www.python.org/)
