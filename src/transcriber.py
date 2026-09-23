@@ -1,48 +1,29 @@
-"""Lazy ASR: no model import or download on GUI startup."""
-import threading
-from pathlib import Path
-from src.settings import Settings
+# 第一次运行会自动下载模型文件
+import whisper
+from whisper.utils import get_writer
+import os
+import configparser
+
+#获取当前文件的绝对路径，向上一级，用绝对路径找到config.ini并读取
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_dir)
+config_path = os.path.join(project_root, 'config.ini')
+MYCONFIG = configparser.ConfigParser()
+MYCONFIG.read(config_path,encoding='utf-8')
 
 
 class SpeechTranscriber:
-    _models = {}
-    _locks = {}
-    _guard = threading.Lock()
-
-    def __init__(self, model_size=None, settings=None):
-        self.settings = settings or Settings()
-        self.model_size = model_size or self.settings.whisper_model
-
-    def preload(self):
-        if self.settings.asr_backend == "local":
-            self._local_model(self.model_size)
-
-    @classmethod
-    def _local_model(cls, model_size):
-        with cls._guard:
-            lock = cls._locks.setdefault(model_size, threading.Lock())
-        with lock:
-            if model_size not in cls._models:
-                import whisper
-                cls._models[model_size] = whisper.load_model(model_size)
-            return cls._models[model_size], lock
-
+    def __init__(self, model_size=MYCONFIG['DEFAULT']['WHISPER_MODEL_SIZW']):
+        self.model = whisper.load_model(model_size)
+        
     def transcribe(self, audio_path):
-        if Path(audio_path).stat().st_size <= 44:
-            return ""
-        if self.settings.asr_backend == "cloud":
-            from openai import OpenAI
-            with OpenAI(api_key=self.settings.api_key or "not-required",
-                        base_url=self.settings.api_url,
-                        timeout=self.settings.timeout, max_retries=0) as client:
-                with open(audio_path, "rb") as source:
-                    result = client.audio.transcriptions.create(
-                        model=self.settings.asr_model, file=source)
-                return result.text.strip()
-        model, lock = self._local_model(self.model_size)
-        options = {"fp16": str(model.device).startswith("cuda"),
-                   "condition_on_previous_text": False}
-        if self.settings.language != "auto":
-            options["language"] = self.settings.language
-        with lock:
-            return model.transcribe(str(audio_path), **options)["text"].strip()
+        #判断这个音频文件大小是否小于1个字节
+        if os.path.getsize(audio_path) < 1:
+            return "音频文件大小为0"
+        result = self.model.transcribe(audio_path)
+        return result["text"]
+
+if __name__ == "__main__":
+    transcriber = SpeechTranscriber()
+    text = transcriber.transcribe("output/test_record.wav")
+    print("转写结果:", text)
