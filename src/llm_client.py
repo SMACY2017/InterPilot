@@ -1,56 +1,84 @@
+"""Text and image requests with isolated, cancellable streams."""
+import base64
+import threading
 from openai import OpenAI
-import sys
+from src.settings import load_settings
 
-import os
-import configparser
 
-#获取当前文件的绝对路径，向上一级，用绝对路径找到config.ini并读取
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.dirname(current_dir)
-config_path = os.path.join(project_root, 'config.ini')
-MYCONFIG = configparser.ConfigParser()
-MYCONFIG.read(config_path,encoding='utf-8')
+def safe_error(exc, secret=""):
+    status = getattr(exc, "status_code", None)
+    if status:
+        return f"API 请求失败（HTTP {status}），请检查密钥、模型权限、额度和请求大小。"
+    message = str(exc).replace(secret, "[已隐藏]") if secret else str(exc)
+    if type(exc).__module__.startswith(("openai", "httpx", "httpcore")):
+        return f"连接失败：{type(exc).__name__}，请检查网络或超时设置。"
+    return message[:400]
 
-def update_response(new_text):
-    #作为回调函数，更新response
-    print(new_text, end="", flush=True,sep="")
+
+def image_content(data, mime="image/png"):
+    return {"type": "image_url", "image_url": {
+        "url": f"data:{mime};base64,{base64.b64encode(data).decode('ascii')}",
+        "detail": "high"}}
+
 
 class LLMClient:
-    def __init__(self, api_url=MYCONFIG['DEFAULT']['API_URL'],api_key=MYCONFIG['DEFAULT']['API_KEY'],model=MYCONFIG['DEFAULT']['MODEL']):
-        self.client = OpenAI(
-            api_key=api_key,
-            base_url=api_url
+    def __init__(self, api_url=None, api_key=None, model=None, settings=None, client=None):
+        self.settings = settings or load_settings()
+        self.model = model or self.settings.model
+        self.client = client or OpenAI(
+            # The SDK requires a non-empty value even when a local
+            # OpenAI-compatible server does not authenticate requests.
+            api_key=(api_key if api_key is not None else self.settings.api_key) or "not-required",
+            base_url=api_url or self.settings.api_url,
+            timeout=self.settings.timeout, max_retries=0,
         )
-        self.model = model
 
-    def get_response(self, prompt, callback=None):
-        model = self.model
-        response = self.client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            stream=True
+    def close(self):
+        self.client.close()
+
+    def list_models(self):
+        return sorted(item.id for item in self.client.models.list().data)
+
+    def get_response(self, prompt, callback=None, *, image=None, cancel=None,
+                     system_prompt=None, activity_callback=None):
+        cancel = cancel or threading.Event()
+        if cancel.is_set():
+            return ""
+        content = prompt
+        if image:
+            content = [image_content(image), {"type": "text", "text": prompt}]
+        messages = [
+            {"role": "system", "content": self.settings.system_prompt if system_prompt is None else system_prompt},
+            {"role": "user", "content": content},
+        ]
+        parts = []
+        request_options = {}
+        if ("siliconflow" in self.settings.api_url.lower() or
+                self.settings.enable_thinking):
+            extra_body = {"enable_thinking": self.settings.enable_thinking}
+            if self.settings.enable_thinking:
+                extra_body["thinking_budget"] = self.settings.thinking_budget
+            request_options["extra_body"] = extra_body
+        stream = self.client.chat.completions.create(
+            model=self.model, messages=messages, stream=True,
+            max_tokens=self.settings.max_tokens,
+            **request_options,
         )
-        full_response = ""
-        for chunk in response:
-            if not chunk.choices:
-                continue
-            if chunk.choices[0].delta.content:
-                content = chunk.choices[0].delta.content
-                full_response += content
-                if callback:
-                    callback(content)
-            if chunk.choices[0].delta.reasoning_content:
-                reasoning = chunk.choices[0].delta.reasoning_content
-                full_response += reasoning
-                if callback:
-                    callback(reasoning)
-        return full_response
-
-
-
-if __name__ == "__main__":
-    # 需要先设置环境变量 SILICONFLOW_API_KEY
-    import os
-    client = LLMClient()
-    
-    print(client.get_response("请你作为一个熟悉人工智能知识的专业算法工程师帮助我。我正在参加一场面试，接下来你被输入的文字来自于面试官的语音转文字，请你全力理解并为我写好合适的回答：听你刚刚的介绍，你在训练模型的过程中遇到过拟合了怎么办？", callback=update_response))
+        try:
+            for chunk in stream:
+                if cancel.is_set():
+                    break
+                if not chunk.choices:
+                    continue
+                delta = chunk.choices[0].delta
+                reasoning = getattr(delta, "reasoning_content", None)
+                if reasoning and activity_callback:
+                    activity_callback()
+                text = getattr(delta, "content", None)
+                if text:
+                    parts.append(text)
+                    if callback:
+                        callback(text)
+        finally:
+            stream.close()
+        return "".join(parts)

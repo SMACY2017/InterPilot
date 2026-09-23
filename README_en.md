@@ -1,253 +1,121 @@
-
-
 # InterPilot
 
-[English](README_en.md) | [中文](README.md)
+English | [中文](README.md)
 
-[![Windows](https://img.shields.io/badge/Windows-Platform-blue?logo=windows)](https://www.microsoft.com/windows)
-[![Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://img.shields.io/badge/License-CC%20BY--NC%204.0-blue?logo=creativecommons)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Python](https://img.shields.io/badge/Python-3.10-blue?logo=python)](https://www.python.org/)
-[![PyQt5](https://img.shields.io/badge/PyQt5-5.15.4-blue?logo=qt)](https://pypi.org/project/PyQt5/)
-[![FFmpeg](https://img.shields.io/badge/FFmpeg-4.4-blue?logo=ffmpeg)](https://www.ffmpeg.org/)
-[![OpenAI](https://img.shields.io/badge/OpenAI-API-blue?logo=openai)](https://www.openai.com/)
-[![SiliconFlow](https://img.shields.io/badge/SiliconFlow-API-blue?logo=siliconflow)](https://cloud.siliconflow.cn/i/TzKmtDJH)
+InterPilot is a Windows desktop assistant for paper presentations, meetings, and Q&A. It captures microphone and system-loopback audio as separate sources, transcribes the discussion, and combines recent speech with a slide screenshot and paper excerpts to produce concise, source-aware speaking notes.
 
-InterPilot is an AI-based assistant tool that captures audio from Windows input and output devices, transcribes the audio into text, and then calls an LLM (Large Language Model) API to generate responses. The project comprises three main modules—recording, transcription, and AI response—**aiming to support legitimate personal study, work, and research.**
-
-Some beta testers have reported that this tool may be helpful in scenarios such as interviews, meetings, and learning. For instance, it can serve as an AI interview assistant in online meeting software by capturing the interviewer’s audio and generating responses. However, please note that **this tool is intended solely for learning and communication purposes and must not be used for any improper activities.**
-
-Through testing, this tool can leverage third-party utilities to hide its interface so that it is not recorded by screen recording or screen sharing software. However, the tool itself does not possess interface hiding capabilities. **Whether you use third-party tools is not the author’s responsibility; the risk is solely borne by the user.**
-
-![InterPilot](doc_pic/logo.png)
-
-## Table of Contents
-
-- [InterPilot](#interpilot)
-  - [Table of Contents](#table-of-contents)
-  - [Inspiration](#inspiration)
-  - [Features](#features)
-  - [Project Structure](#project-structure)
-  - [Installation \& Dependencies](#installation--dependencies)
-    - [System Dependencies](#system-dependencies)
-    - [Python Dependencies](#python-dependencies)
-  - [Configuration](#configuration)
-    - [Detailed Configuration Instructions](#detailed-configuration-instructions)
-      - [API](#api)
-      - [Recording Device Index](#recording-device-index)
-  - [Usage Instructions](#usage-instructions)
-    - [Testing Individual Modules](#testing-individual-modules)
-    - [Launching the Graphical User Interface](#launching-the-graphical-user-interface)
-    - [Notes](#notes)
-    - [Handling Screen Sharing and UI Hiding (if you wish to keep the tool hidden during meetings)](#handling-screen-sharing-and-ui-hiding-if-you-wish-to-keep-the-tool-hidden-during-meetings)
-  - [TODO](#todo)
-  - [Contribution](#contribution)
-  - [⚠️ Disclaimer](#️-disclaimer)
-  - [License](#license)
-
-
-
-## Inspiration
-
-Inspired by [YT-Chowww/InterviewCopilot](https://github.com/YT-Chowww/InterviewCopilot)
+Users are responsible for ensuring that recording, transcription, and data upload comply with meeting rules, participant consent requirements, and local law. Use headphones and keep unrelated notifications and media off the selected output device.
 
 ## Features
 
-- **Audio Capture**  
-  Uses [LoopbackRecorder](src/audio_capture.py) to record audio from the system (with **support for loopback devices**) and saves it as a WAV file.
+- Independent microphone and WASAPI loopback selection, enable switches, and level meters.
+- Local Whisper or SiliconFlow cloud transcription with silence-aware chunking; local mode shows rolling drafts and corrects them after a pause.
+- Semi-automatic mode: keep transcribing and request a hint with a button or global hotkey.
+- Automatic mode: check new discussion for questions or objections and stay quiet when no useful hint is needed.
+- Local PDF text extraction and page-level excerpts with physical PDF page references.
+- A preselected monitor can be captured directly by hotkey, with manual region selection available as an option.
+- One Settings window covers the API, model, prompts, audio devices, paper, initial image, screenshot strategy, and hotkeys. Both SiliconFlow and local OpenAI-compatible endpoints are supported.
+- Available models can be fetched, searched, and selected from a dropdown. Thinking is disabled by default for low first-token latency, with an optional token budget.
+- The API key is optional for local services. Remote keys can be stored with Windows DPAPI and are never written to JSON or Git.
+- Streaming output, connection reuse, first-token/total latency display, cancellation, session export, and page pinning.
+- The answer pane receives most of the window by default; Focus mode hides the sidebar and transcript when needed.
+- Focus mode can keep the transcript visible, while rolling ASR text remains at a fixed UI height.
+- Optional always-on-top mode for reading hints above the presentation window.
 
-- **Speech Transcription**  
-  Performs **local audio transcription** using the [Whisper](https://github.com/openai/whisper) model. It supports various model sizes (default is the `base` model).
+The default answer/vision model is `Qwen/Qwen3.8-27B`. Actual model access depends on the account. Use Settings to test the connection, refresh the model list, or enter a model ID directly.
 
-- **AI-Assisted Response**  
-  Analyzes the transcribed text and generates responses by calling the LLM API (configured in `config.ini`). It supports **streaming responses with real-time UI updates**.
+![InterPilot presentation console](doc_pic/GUI.png)
 
-- **Graphical User Interface**  
-  A clean GUI built with PyQt5 that supports recording, transcription, sending text to the LLM, and renders LLM responses with **Markdown support**.
+## Presentation workflow
 
-![GUI](doc_pic/GUI.png)
+1. Wear headphones, silence notifications, and make sure the chosen output device mainly carries the online meeting.
+2. In Settings, select the paper PDF, microphone, and loopback device for the headphones in use.
+3. Select the monitor that will share the slides and use full-screen capture.
+4. Start in semi-automatic mode and press `Ctrl+Alt+Enter` when you want a hint.
+5. After changing slides, press `Ctrl+Alt+S` to capture the configured monitor and request a hint.
+6. Enable automatic mode after the device and prompt behavior have been validated.
 
-## Project Structure
+A clear screenshot is enough to test the visual Q&A path. It remains fixed until the capture hotkey replaces it.
 
-```
-C:.
-│   config.ini
-│   logo.png
-│   main.py
-│   main_cmd.py
-│   README.md
-│   requirements.txt
-│
-├── output
-└── src
-    │   audio_capture.py
-    │   llm_client.py
-    │   transcriber.py
-    │   __init__.py
-    │
-    └── utils
-        │   config_loader.py
-        │   __init__.py
-```
+## Default global hotkeys
 
-- **config.ini**  
-  Configuration file containing the API endpoint, API key, model to use, device indices, default prompt, etc.
+| Action | Hotkey |
+| --- | --- |
+| Start / pause listening | `Ctrl+Alt+R` |
+| Request a hint | `Ctrl+Alt+Enter` |
+| Capture the configured monitor and request | `Ctrl+Alt+S` |
+| Show / hide the window | `Ctrl+Alt+H` |
 
-- **logo.png**  
-  Application icon used in the GUI.
+## Install and run
 
-- **main.py / main_cmd.py**  
-  Entry points for the program, responsible for launching the GUI and the overall workflow.
+Python 3.10 is recommended:
 
-- **output/**  
-  Directory for storing recorded audio files.
-
-- **requirements.txt**  
-  Lists the Python package dependencies (such as PyQt5, markdown2, whisper, openai, etc.).
-
-- **src/**  
-  Contains the core modules:  
-  - `audio_capture.py`: Audio recording module.  
-  - `transcriber.py`: Speech transcription module.  
-  - `llm_client.py`: Client for calling the LLM API.  
-  - `utils/`: Contains additional utility classes and configuration loader modules.
-
-## Installation & Dependencies
-
-### System Dependencies
-
-- **FFmpeg**  
-  This project depends on [FFmpeg](https://www.gyan.dev/ffmpeg/) for some audio processing tasks. Please ensure FFmpeg is properly installed and added to your system's PATH.  
-  - **Example Installation Methods**:  
-    - **For Windows Users**:  
-      - Using [Scoop](https://scoop.sh/):
-        ```bash
-        scoop install ffmpeg
-        ```  
-      - Or download the Windows precompiled version (see [Download Link](https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z)).  
-      - Add the `bin` folder from the downloaded directory (e.g., `C:\Users\USERNAME\scoop\apps\ffmpeg\7.1.1\bin`) to your system PATH.
-    - **For macOS Users**:  
-      ```bash
-      brew install ffmpeg
-      ```
-    - The Whisper project mentions that "You may need rust installed as well," so if you encounter issues with `transcriber.py`, consider installing Rust (though it usually works without it).
-
-### Python Dependencies
-
-It is recommended to create a virtual environment using Miniconda or Anaconda (suggested Python version: 3.10):
-
-```bash
-conda create -n interview python=3.10
-conda activate interview
-```
-
-Then install the required Python packages:
-
-```bash
+```powershell
+conda create -n interpilot python=3.10
+conda activate interpilot
 pip install -r requirements.txt
-```
-
-## Configuration
-
-Please modify the `config.ini` file in the root directory according to your setup, including:
-
-- **API_URL**: The LLM API endpoint.
-- **API_KEY**: Your API access key.
-- **MODEL**: The model name to be used (e.g., `deepseek-ai/DeepSeek-R1-Distill-Qwen-7B`). Other model names can be viewed on the Siliconflow website (see [Official Link](https://cloud.siliconflow.cn/i/TzKmtDJH)).
-- **SPEAKER_DEVICE_INDEX** and **MIC_DEVICE_INDEX**: The indices of the recording devices, depending on your system configuration. It is recommended to read the [Recording Device Index](#recording-device-index) and [Notes](#notes) sections.
-- **OUTPUT_DIR**: Directory to store the recorded audio files.
-- **WHISPER_MODEL_SIZE**: Size of the Whisper model. Options include tiny, `base`, `small`, `medium`, `large`, `turbo`.
-- **DEFAULT_PROMPT**: It is the default prompt word **spliced at the forefront of the text sent to LLM**, which can be adjusted according to the usage scenario. For example, "You are an expert in XX, and the text you are about to receive comes from XX. Please provide a reasonable and concise answer based on this:"
-
-### Detailed Configuration Instructions
-
-#### API
-- It is recommended to register on Siliconflow (see [Official Link](https://cloud.siliconflow.cn/i/TzKmtDJH)) to obtain an `API_KEY`. New users can get a free credit (invite code `TzKmtDJH`) which is sufficient for some time.
-- On the website, go to the left sidebar -> API Keys -> Create a new API key. Replace the long string (e.g., `sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx`) in `config.ini` with your new API key.
-- **Other services supporting the OpenAI API can be used as well** by replacing `API_URL` and `API_KEY` (though Siliconflow is recommended because the tool uses the free `deepseek-ai/DeepSeek-R1-Distill-Qwen-7B` model).
-
-#### Recording Device Index
-- The default `SPEAKER_DEVICE_INDEX` is set to -1, which automatically finds an available default WASAPI loopback device (usually recording what is heard through your speakers or headphones). If issues occur, run `audio_capture.py` to list all available devices and manually specify the correct device. You may also adjust this parameter to record from the microphone instead.
-
-```bash
-python src/audio_capture.py
-```
-
-## Usage Instructions
-
-### Testing Individual Modules
-
-Each core module (recording, transcription, and LLM client) contains simple test code. You can run the following files individually to verify that each module works correctly:
-
-- `src/audio_capture.py`  — Implements audio recording (lists system audio devices).
-- `src/transcriber.py`  — Implements audio transcription (the model will be automatically downloaded on first run).
-- `src/llm_client.py` — Implements the LLM client (calls the LLM API and returns responses).
-
-### Launching the Graphical User Interface
-
-Run `main.py` to launch the full InterPilot GUI:
-
-```bash
 python main.py
 ```
 
-In the GUI, you can perform the following operations sequentially:
+Local Whisper also requires FFmpeg. On Windows with Scoop:
 
-- **Start Recording**: Click the "Start Recording" button. The program will generate a unique filename and start recording audio.
-- **Stop Recording**: Click the "Stop Recording" button to end the recording. The audio file is saved in the `output` directory.
-- **Transcribe Audio**: After recording (or manually triggering), the transcription module converts the audio to text and displays it in the interface.
-- **Send to LLM**: Once transcription is complete, the text can be sent to the LLM to generate an AI response, which will be displayed with Markdown support.
-- **Modify Transcribed Text and Resend to LLM** if needed.
-
-If you prefer running the tool in a command-line mode, you can use `main_cmd.py`:
-
-```bash
-python main_cmd.py
+```powershell
+scoop install ffmpeg
 ```
 
-### Notes
+Open Settings on first launch, enter the API URL and model ID, and add an API key only when the service requires one. Fetch the model list to test the connection, then select the transcription mode and models. Settings are stored in the Git-ignored `config.local.json`; an optionally remembered key is encrypted for the current Windows account in `config.key`. Do not place a real key in `config.ini`.
 
-- **Recording Devices**: Depending on your system, you may need to adjust `SPEAKER_DEVICE_INDEX` and `MIC_DEVICE_INDEX` in `config.ini`.
-- **Environment Variables**: Ensure FFmpeg is installed and added to the PATH; otherwise, audio processing might be affected.
-- **Testing**: It is recommended to test each module individually to confirm that audio recording, transcription, and LLM response work correctly before running the full GUI.
+### Local OpenAI-compatible endpoints
 
-### Handling Screen Sharing and UI Hiding (if you wish to keep the tool hidden during meetings)
+Any local server that implements an OpenAI-compatible Chat Completions endpoint can be used without a key:
 
-- Use [shalzuth/WindowSharingHider](https://github.com/shalzuth/WindowSharingHider) to hide the UI—an excellent tool that is both convenient and effective!
-- **Taskbar Icon Hiding**:
-  - You can use Windows’ built-in taskbar icon hiding features, or simply move the taskbar to a secondary monitor.
-  - Alternatively, you may find third-party hiding tools (feel free to search for one that suits your needs).
-- Using [turbotop](https://www.savardsoftware.com/turbotop/) can keep the window always on top—another very useful tool.
-- **Important**: The order of operations may affect the outcome:
-  - First, use turbotop to set the window to always on top.
-  - Then, use WindowSharingHider to hide the UI.
-  - If the results are not satisfactory, try altering the order.
+```text
+API URL:  http://localhost:8000/v1
+API key:  leave blank
+Model ID: use the name exposed by the local server
+```
 
-![Usage Comparison](doc_pic/Use.jpg)
+Include the `/v1` path expected by the server. The model dropdown depends on `GET /models`; if the server does not implement it, enter the model ID manually. Screenshot requests also require a model and server that accept OpenAI-style image input. Clear the initial reference image and avoid “Capture & Ask” when using a text-only model.
 
-## TODO
+## Data handling
 
-- [ ] Add more detailed usage examples or screenshots (GUI operation examples, terminal output, etc.) in the README.
-- [ ] Integrate a voice generation feature (TTS) – already tested and pending integration.
-- [ ] Add functionality for simultaneous recognition of both microphone and speaker audio.
-- [ ] Add a feature to upload screenshots and send them to the LLM.
-- [ ] Implement the taskbar icon hiding feature.
+- Local Whisper keeps transcription on the computer and deletes temporary WAV chunks after processing.
+- Cloud ASR uploads audio chunks to the configured service.
+- Hint requests send recent discussion, selected paper excerpts, and the current screenshot to the answer model.
+- The PDF is parsed locally; only selected excerpts are included in requests.
+- Exported sessions may contain meeting content and should be stored appropriately.
 
-## Contribution
+Source labels describe capture channels rather than verified speaker identities.
 
-Contributions are welcome! Feel free to submit issues or pull requests to help improve the tool. If you have any suggestions or improvements, please contact us.
+## Diagnostics and tests
 
+```powershell
+python main_cmd.py --list-devices
+python main_cmd.py --audio output/test_record.wav --transcribe-only
+pip install -r requirements-dev.txt
+python -m pytest -q
+python -m compileall -q main.py main_cmd.py src
+python -m ruff check main.py main_cmd.py src tests
+```
 
-## ⚠️ Disclaimer
+Example paper/slide request:
 
-This project is intended solely for technical learning and research purposes. It must not be used for:
-- Any form of interview cheating.
-- Infringing on others’ privacy or trade secrets.
-- Any actions that violate local laws and regulations.
+```powershell
+python main_cmd.py --paper pre/paper.pdf --image pre/slide.png --question "Explain the roles of the two stages on this slide"
+```
 
-Users are solely responsible for any legal consequences resulting from misuse. By using this project, you acknowledge that you have read and agreed to this disclaimer.
+Hardware capture still requires one manual test with the actual headset and microphone.
+
+## Current limitations
+
+- Local lexical page retrieval is designed for short papers; longer corpora would benefit from a vector index.
+- References use physical PDF pages, which can differ from printed journal page numbers.
+- Scanned PDFs need OCR first.
+- Automatic hints can still false-trigger and should be calibrated before a live presentation.
+- Screenshots do not update automatically when slides change.
+- Rolling transcription drafts reduce visible latency but may change; only corrected final segments trigger automatic hint checks.
+- The first version relies on the user to keep unrelated system sounds off the selected output device.
 
 ## License
 
-This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/) license.  
-This means you are free to share and modify the project’s contents **for non-commercial purposes only**.
-```
+Licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) for non-commercial use only.

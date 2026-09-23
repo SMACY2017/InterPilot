@@ -1,263 +1,148 @@
-
-
 # InterPilot
 
-[English](README_en.md) | [中文](README.md)
+[English](README_en.md) | 中文
 
-[![Windows](https://img.shields.io/badge/Windows-Platform-blue?logo=windows)](https://www.microsoft.com/windows)
-[![Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://img.shields.io/badge/License-CC%20BY--NC%204.0-blue?logo=creativecommons)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Python](https://img.shields.io/badge/Python-3.10-blue?logo=python)](https://www.python.org/)
-[![PyQt5](https://img.shields.io/badge/PyQt5-5.15.4-blue?logo=qt)](https://pypi.org/project/PyQt5/)
-[![FFmpeg](https://img.shields.io/badge/FFmpeg-4.4-blue?logo=ffmpeg)](https://www.ffmpeg.org/)
-[![OpenAI](https://img.shields.io/badge/OpenAI-API-blue?logo=openai)](https://www.openai.com/)
-[![SiliconFlow](https://img.shields.io/badge/SiliconFlow-API-blue?logo=siliconflow)](https://cloud.siliconflow.cn/i/TzKmtDJH)
+InterPilot 是面向论文分享、会议和讨论的 Windows 桌面助手。它可以分别采集麦克风与系统声音，持续转写讨论，并结合当前幻灯片截图和论文 PDF，生成适合演讲者快速阅读的回答提示。
 
-本项目是一个基于 AI 的助手工具，能够从windows的输入输出设备中捕获音频，将音频转为文字后，再调用 LLM（大语言模型） API 给出回答。项目主要包括录音、转写和 AI 回答三个模块，**旨在为个人的正当学习、工作、科研提供辅助支持。**
+> 使用者应确保音频采集、转写和资料上传符合会议规则、参与者知情要求及当地法律。请使用耳机，并确保所选系统输出设备主要播放会议声音；关闭无关视频和通知声音。
 
-部分内测用户反映，本工具可能可以在面试、会议、学习等场景中提供一定的帮助，比如在在线会议软件中作为AI面试工具辅助面试：获取面试官的音频然后得到回答，但是请注意：**本工具仅供学习交流使用，不得用于任何不正当用途**。
+## 已实现能力
 
-经测试，本工具**能够借助第三方工具隐藏界面以防止被录屏软件、屏幕共享等功能录制到**，但工具本身不具备隐藏界面的功能。**是否使用第三方工具与作者无关，风险由用户自行承担。**
+- 麦克风与 WASAPI 系统回环可独立启用、选择设备和查看音量。
+- 本地 Whisper 或 SiliconFlow 云端语音转写；本地模式可边说边显示临时结果，停顿后用完整分段校正。
+- 半自动模式：持续转写，按按钮或全局快捷键请求提示。
+- 自动模式：仅在出现新的问题、质疑或相关讨论时检查并给出提示。
+- 导入论文 PDF，按页面提取相关内容；回答要求标注文件名和 PDF 物理页码。
+- 可预先选择指定显示器，快捷键直接截取整屏；也可切换为每次框选区域，再连同讨论和论文摘录发给视觉模型。
+- 设置窗口统一配置 API、模型、提示词、音频设备、论文、初始图片、截图策略和快捷键；支持 SiliconFlow 及本机 OpenAI 兼容接口，主界面只保留演讲时需要的操作。
+- 模型列表可从 API 获取、搜索和下拉选择；默认关闭深度思考以降低首字延迟，也可手动启用并限制思考 token。
+- API key 为可选项；本地服务可留空，远程密钥可用 Windows DPAPI 按当前账户加密保存在本机，不写入 JSON 或 Git。
+- 流式回答、连接复用、首字/总耗时显示、取消请求、会话导出与论文页码优先指定。
+- 即时提示默认占据主要空间；可拖动上下分隔线，或启用“专注提示”隐藏侧栏与讨论区。
+- 专注阅读时可选择保留讨论；实时识别摘要保持固定高度，不会随临时文本伸缩界面。
+- 可切换窗口置顶，便于在演讲或会议窗口上方查看短提示。
 
+默认回答与视觉模型为 `Qwen/Qwen3.8-27B`。模型权限和能力以账户实际可用列表为准；可在设置中测试连接、刷新列表或直接填写模型 ID。SiliconFlow 的 OpenAI 兼容接口支持用 base64 图片调用视觉模型，详见其[视觉输入文档](https://docs.siliconflow.cn/docs/userguide/capabilities/vision)。
 
-![InterPilot](doc_pic/logo.png)
+![InterPilot 演讲辅助控制台](doc_pic/GUI.png)
 
-如果对你有所帮助，可以通过[微信](doc_pic/QR.png)扫码打赏，感谢你的支持！
-![赞助](doc_pic/QR.png)
-## 目录
+## 推荐的论文分享流程
 
-- [InterPilot](#interpilot)
-  - [目录](#目录)
-  - [灵感](#灵感)
-  - [特性](#特性)
-  - [项目结构](#项目结构)
-  - [安装与依赖](#安装与依赖)
-    - [系统依赖](#系统依赖)
-    - [Python 依赖](#python-依赖)
-  - [配置](#配置)
-    - [具体配置说明](#具体配置说明)
-      - [API](#api)
-      - [录音设备索引](#录音设备索引)
-  - [使用说明](#使用说明)
-    - [单独测试模块](#单独测试模块)
-    - [启动图形界面](#启动图形界面)
-    - [注意事项](#注意事项)
-    - [应对在线会议等软件的屏幕共享功能（如果你不想让别人看到本工具）](#应对在线会议等软件的屏幕共享功能如果你不想让别人看到本工具)
-  - [待补充 / TODO](#待补充--todo)
-  - [贡献](#贡献)
-  - [免责声明 / Disclaimer](#免责声明--disclaimer)
-  - [许可证](#许可证)
+1. 戴上耳机并关闭通知声音，确保系统回环主要包含线上会议声音。
+2. 在“设置”中选择论文 PDF、麦克风和正在使用的耳机回环设备。
+3. 选择正在共享 PPT 的显示器，并将截图方式设为“整屏”。
+4. 先使用半自动模式，开始监听后用 `Ctrl+Alt+Enter` 请求提示。
+5. 翻页后用 `Ctrl+Alt+S` 直接截取已设置的显示器并立即请求提示。
+6. 设备和提示效果稳定后，再切换到自动模式。
 
-## 灵感
+一张清晰的 PPT 截图足以测试视觉问答链路。截图不会自动随 PPT 翻页更新，所以正式演讲中仍需按快捷键刷新；后续可增加低频自动截图与页面变化检测。
 
-来源于[YT-Chowww/InterviewCopilot](https://github.com/YT-Chowww/InterviewCopilot)
+## 默认全局快捷键
 
+| 功能 | 快捷键 |
+| --- | --- |
+| 开始 / 暂停监听 | `Ctrl+Alt+R` |
+| 立即生成提示 | `Ctrl+Alt+Enter` |
+| 截取预设屏幕并提示 | `Ctrl+Alt+S` |
+| 显示 / 隐藏窗口 | `Ctrl+Alt+H` |
 
-## 特性
+快捷键被其他程序占用时，InterPilot 会显示提示；可在设置中修改。快捷键需要至少一个 `Ctrl`、`Alt`、`Shift` 或 `Win` 修饰键。
 
-- **音频捕获**  
-  使用 [LoopbackRecorder](src/audio_capture.py) 从系统录制音频（**支持 loopback 设备**），并保存为 WAV 文件。
+## 安装与启动
 
-- **语音转写**  
-  基于 [Whisper](https://github.com/openai/whisper) 模型在**本地进行音频转写**，支持多种模型规格（默认使用 `base` 模型）。
+建议使用 Python 3.10 和独立环境：
 
-- **AI 辅助回答**  
-  通过调用 LLM API（配置在 `config.ini` 中）对转写后的文本进行分析，生成回答。支持**流式返回并实时更新界面**。
-
-- **图形用户界面**  
-  基于 PyQt5 构建的简洁 GUI，支持录音、转写、发送文本至 LLM 等操作，并对 LLM 回复**支持 Markdown 渲染**。
-
-![GUI](doc_pic/GUI.png)
-
-## 项目结构
-
-```
-C:.
-│   config.ini
-│   logo.png
-│   main.py
-|   main_cmd.py
-|   README.md
-│   requirements.txt
-│
-├── output
-└── src
-    │   audio_capture.py
-    │   llm_client.py
-    │   transcriber.py
-    │   __init__.py
-    │
-    └── utils
-        │   config_loader.py
-        │   __init__.py
-```
-
-- **config.ini**  
-  配置文件，包含 API 接口地址、API key、使用的模型、设备索引、默认提示词等参数。
-
-- **logo.png**  
-  应用程序图标（用于 GUI 窗口）。
-
-- **main.py/main_cmd.py**  
-  程序入口，负责启动图形界面和整体工作流程。
-
-- **output/**  
-  存放录音文件。
-
-- **requirements.txt**  
-  列出项目依赖的 Python 包（例如 PyQt5、markdown2、whisper、openai 等）。
-
-- **src/**  
-  存放核心模块：  
-  - `audio_capture.py`：音频录制模块。   
-  - `transcriber.py`：语音转写模块。  
-  - `llm_client.py`：调用 LLM API 的客户端。 
-  - `utils/`：包含一些工具类和配置加载模块。
-
-## 安装与依赖
-
-### 系统依赖
-
-- **FFmpeg**  
-  本项目依赖 [FFmpeg](https://www.gyan.dev/ffmpeg/) 进行部分音频处理，请确保已正确安装并配置环境变量。  
-  - **安装方法示例**： 
-    - Windows 用户： 
-      - 使用 [Scoop](https://scoop.sh/)：  
-        ```bash
-        scoop install ffmpeg
-        ```  
-      - 或下载 Windows 预编译版本（[下载链接](https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z)）
-      - 将下载目录下的 `bin` 文件夹（例如 `C:\Users\USERNAME\scoop\apps\ffmpeg\7.1.1\bin`）添加到系统环境变量 `PATH` 中。
-    - Mac 用户可使用 Homebrew 安装：  
-      ```bash
-      brew install ffmpeg
-      ```
-    - whisper项目提到`You may need rust installed as well`,所以需要可能安装rust（但不安装好像没事儿，建议先不装，如果`transcriber.py`不能正常运行再参考[Whisper](https://github.com/openai/whisper) ）
-     
-
-
-### Python 依赖
-
-建议使用miniconda或者anaconda创建虚拟环境（建议安装 `Python 3.10`版本）：
-
-```bash
-conda create -n interview python=3.10
-conda activate interview
-```
-
-然后使用以下命令安装项目所需依赖：
-  
-```bash
+```powershell
+conda create -n interpilot python=3.10
+conda activate interpilot
 pip install -r requirements.txt
-```
-
-
-## 配置
-
-请根据实际情况修改根目录下的 `config.ini` 文件，其中包括：
-
-- **API_URL**：LLM API 的地址。  
-- **API_KEY**：访问 API 的密钥。  
-- **MODEL**：调用的模型名称（例如 `deepseek-ai/DeepSeek-R1-Distill-Qwen-7B`，其他模型名称可以访问硅基流动（[官网链接](https://cloud.siliconflow.cn/i/TzKmtDJH)）-模型广场查看。  
-- **SPEAKER_DEVICE_INDEX** 与 **MIC_DEVICE_INDEX**：录音设备的索引，视具体系统配置而定。建议阅读[录音设备索引](#录音设备索引)和[注意事项](#注意事项)部分。
-- **OUTPUT_DIR**：存储录音文件的目录。  
-- **WHISPER_MODEL_SIZW**：[whisper](https://github.com/openai/whisper)模型的大小，可选项为tiny `base`、`small`、`medium`、`large`、`turbo`。
-- **DEFAULT_PROMPT**：是**拼接**在发送给 LLM 的文本最前端的默认提示词，可根据使用场景调整，例如“你是一个XX方面的专家，你马上获取到的文本来自于XX，请你据此给出合理简洁的回答：”
-
-### 具体配置说明
-
-#### API
-- 建议注册硅基流动（[官网链接](https://cloud.siliconflow.cn/i/TzKmtDJH)）获取`API_KEY`，新用户受邀可获取14元额度（邀请码`TzKmtDJH`），足够用一段时间了
-- 官网左侧菜单栏-API秘钥-新建API秘钥-获取一段形如`sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx`的长字符串替换`config.ini`里的`API_KEY`即可
-- **使用其他支持OpenAI API的服务也可以**，只需替换`API_URL`和`API_KEY`即可（还是建议使用siliconflow，工具默认使用的`deepseek-ai/DeepSeek-R1-Distill-Qwen-7B`模型完全免费，白嫖万岁！）
-
-#### 录音设备索引
-- 默认`SPEAKER_DEVICE_INDEX`置为了-1，这会自动寻找可用的默认wasapi_loopback设备，一般录制的就是你的目前的扬声器（耳机）听到的声音，但如果出现问题，建议手动运行`audio_capture.py`查看全部可用设备后，手动指定正确的设备。你也可以通过修改这个参数使得录制的是麦克风输入的声音。
-
-```bash
-python src/audio_capture.py
-```
-
-## 使用说明
-
-### 单独测试模块
-
-项目各核心模块（录音、转写、LLM 客户端）均包含简单的测试代码。你可以分别运行下列文件，检查各功能模块是否正常运行：
-
-- `src/audio_capture.py`  —— 用于实现音频录制功能（能够打印出系统中的音频设备列表）。
-- `src/transcriber.py`  —— 用于实现音频转写功能（首次运行会自动下载模型）。
-- `src/llm_client.py` —— 用于实现 LLM 客户端功能（调用 LLM API 并返回回答）。
-
-
-### 启动图形界面
-
-运行 `main.py` 启动完整的面试助手 GUI：
-
-
-```bash
 python main.py
 ```
 
-在 GUI 中你可以依次进行以下操作：
+本地 Whisper 需要 FFmpeg。Windows 可以使用 Scoop 安装：
 
-- **开始录音**：点击“开始录音”按钮，程序将自动生成唯一的录音文件名并开始录制音频。  
-- **结束录音**：点击“结束录音”按钮结束录音，录音文件保存在 `output` 目录中。  
-- **转写文字**：录音结束后（或手动点击），调用转写模块，将录音转为文字并显示在界面上。  
-- **发送给 LLM**：转写完成后，可以将文字发送至 LLM，生成 AI 回答，并在界面上显示支持 Markdown 格式的回复。
-- **修改转写文字并发送给 LLM**
-
-如果你想在终端中运行，可以使用 `main_cmd.py`：
-
-```bash
-python main_cmd.py
+```powershell
+scoop install ffmpeg
 ```
 
-### 注意事项
+第一次使用某个 Whisper 模型时会下载模型文件。若不希望下载或本机算力有限，可在设置中改为云端转写；云端转写会上传分段音频。
 
-- **录音设备**：根据设备不同，可能需要调整 `config.ini` 中的 `SPEAKER_DEVICE_INDEX` 和 `MIC_DEVICE_INDEX` 参数。 默认设置下，因为录制的是扬声器（你听到）的声音，所以在没有声音播放的时候，是不会录制的，所以必须播放一些音频或者视频，才能获取到音频。测试的时候可以放个视频。 
-- **环境变量**：确保 FFmpeg 已安装并已添加到环境变量 PATH 中，否则可能会影响音频处理。  
-- **测试验证**：建议先单独测试各模块，确认音频录制、转写和 LLM 回答均正常后再启动 GUI 整体运行。
+## 首次配置
 
-### 应对在线会议等软件的屏幕共享功能（如果你不想让别人看到本工具）
+1. 打开“设置”，填写 API 地址、模型 ID；使用远程服务时再填写 API key。
+2. 远程密钥可勾选“用 Windows 账户加密后保存在本机”，或仅在本次运行中使用。也可设置环境变量 `SILICONFLOW_API_KEY`。
+3. 点击“获取可用模型并选择”，确认服务可访问回答模型；若服务没有实现 `/models`，可直接填写模型 ID。
+4. 根据语言与算力选择本地 Whisper 模型；`base` 适合功能验证，正式使用可按延迟和准确率调整。
+5. 在“音频与转写”中刷新设备，系统声音选择名称带 `[Loopback]` 的耳机或扬声器设备。
+6. 在“材料与截图”中选择论文和共享 PPT 的显示器；双屏演讲推荐使用整屏截图。
 
-使用[shalzuth/WindowSharingHider](https://github.com/shalzuth/WindowSharingHider)隐藏UI界面————太棒的工具了！又方便又好用！
+程序的普通设置存放在被 Git 忽略的 `config.local.json`；加密密钥存放在 `config.key`。仓库中的 `config.ini` 只用于兼容旧版本，不能存放真实密钥。
 
-任务栏中图表的隐藏:
-- 直接使用windows自带的任务栏隐藏功能，或者干脆把任务栏移到第二个显示器
-- 使用一些隐藏工具（可以自己找一下）
+### 本地 OpenAI 兼容接口
 
-使用[turbotop](https://www.savardsoftware.com/turbotop/)可以使得窗口始终置顶————也是很好用的工具
+只要本地模型服务实现 OpenAI 兼容的 Chat Completions 接口，就可以不使用 API key。例如：
 
-- **注意一下使用顺序不然可能会出现问题**：
-  - 先使用turbotop使得窗口置顶
-  - 再使用WindowSharingHider隐藏UI界面
-  - 如果不太就行就换一下顺序多试几下
+```text
+API 地址: http://localhost:8000/v1
+API key:  留空
+模型 ID:  填写本地服务实际暴露的名称
+```
 
-![使用对比](doc_pic/Use.jpg)
+地址应包含服务要求的 `/v1` 路径。模型列表按钮依赖 `GET /models`；未实现该接口时不影响手动输入模型 ID。发送截图还要求本地模型及服务支持 OpenAI 风格的图片输入；使用纯文本模型时，请在“材料与截图”中清空初始参考图片，并避免使用“截图并提示”。
 
-## 待补充 / TODO
-  
-- [ ] 在README中增加详细的使用案例或截图（GUI 操作示例、终端输出示例等）。  
-- [ ] 增加voice_generate功能（TTS）——已经测试好，待集成
-- [ ] 增加麦克风扬声器音频共同识别功能
-- [ ] 增加截图、上传LLM功能
-- [ ] 任务栏中的图标隐藏功能
+如果密钥曾提交或发送到不可信位置，应在服务商控制台撤销并重新生成。即使从当前版本删除，密钥仍可能留在 Git 历史中。
 
-## 贡献
+## 数据与隐私
 
-欢迎社区开发者提交 issue 或 pull request，一起完善这个 工具。如果有任何建议或改进意见，请随时联系。
+- 本地 Whisper：音频只在本机转写；分段临时 WAV 在处理完成后删除。
+- 云端转写：分段音频发送到配置的 API 服务。
+- 请求提示：最近讨论、选中的论文摘录和当前截图会发送到配置的回答模型。
+- 论文 PDF 在本机提取文字，不会整份直接上传；被选中的页面摘录会进入请求。
+- 导出的会话可能包含讨论与模型回答，请自行选择安全的保存位置。
 
+音频标签表示采集通道，不等同于可靠的说话人身份：“麦克风”通常是本地声音，“系统声音”通常是远端会议与系统播放内容。
 
-## 免责声明 / Disclaimer
+## 命令行诊断
 
-本项目仅供技术学习与研究交流之用，严禁用于以下用途：
-- 任何形式的求职面试作弊行为
-- 侵犯他人隐私或商业秘密
-- 违反当地法律法规的行为
+列出设备：
 
-使用者应对自身行为负全部法律责任，作者不承担任何因滥用本项目导致的直接或间接后果。使用即表示您已阅读并同意本声明。
+```powershell
+python main_cmd.py --list-devices
+```
+
+仅测试本地转写：
+
+```powershell
+python main_cmd.py --audio output/test_record.wav --transcribe-only
+```
+
+用论文、截图和问题发起一次请求：
+
+```powershell
+python main_cmd.py --paper pre/paper.pdf --image pre/slide.png --question "结合当前页说明两个阶段的作用"
+```
+
+## 测试
+
+```powershell
+pip install -r requirements-dev.txt
+python -m pytest -q
+python -m compileall -q main.py main_cmd.py src
+python -m ruff check main.py main_cmd.py src tests
+```
+
+自动化测试覆盖设置脱敏、Windows DPAPI、快捷键、音频断句、PDF 页码检索、图片消息、请求取消和离屏 UI。音频硬件仍需在目标耳机与麦克风上做一次人工验收。
+
+## 当前限制与后续方向
+
+- 当前使用本地关键词选页，适合短论文；更长的资料可进一步加入向量索引和跨文档检索。
+- PDF 引用使用文件的物理页码，可能与论文印刷页码不同。
+- 扫描版 PDF 需要先 OCR。
+- 自动模式依据提示词判断是否需要回应，仍可能误触发；建议正式分享前用真实材料校准。
+- 截图是固定画面，不会自动检测 PPT 翻页；每次按截图快捷键会替换当前画面。
+- 临时转写会优先降低可见延迟，但内容可能变化；停顿后的完整分段才进入自动提示判断。
+- 同一路系统声音可能包含通知或视频，第一版由用户通过耳机与系统设置控制输入内容。
 
 ## 许可证
-本项目采用 [Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/) 许可证进行开源。  
-这意味着您可以自由地共享和修改本项目的内容，但**仅限于非商业用途**。  
 
-
+本项目采用 [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) 许可证，仅限非商业用途。

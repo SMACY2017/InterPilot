@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+config.local.json*
+config.local.ini
+config.key*
+.env
+.env.*
+pre/
+output/
+tmp/
+*.log
