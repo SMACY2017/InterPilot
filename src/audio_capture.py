@@ -1,5 +1,9 @@
 # audio_capture.py
-import pyaudiowpatch as pyaudio
+import sys
+if sys.platform == "win32":
+    import pyaudiowpatch as pyaudio
+else:
+    import pyaudio
 import wave
 import os
 import configparser
@@ -38,7 +42,10 @@ class LoopbackRecorder:
         self.p = pyaudio.PyAudio()
         try:
             if self.device_index is None:
-                self.device_info = self.p.get_default_wasapi_loopback()
+                if sys.platform == "win32":
+                    self.device_info = self.p.get_default_wasapi_loopback()  
+                else:
+                    self.device_info = self.p.get_default_input_device_info()
             else:
                 self.device_info = self.p.get_device_info_by_index(self.device_index)
                 
@@ -120,47 +127,54 @@ class LoopbackRecorder:
     @staticmethod
     def list_devices():
         """设备列表查询（直接使用官方推荐方式）"""
-        with pyaudio.PyAudio() as p:
-                # 打印默认输入设备信息
-            print("\n=== 默认输入设备 ===")
-            try:
-                default = p.get_default_input_device_info()
-                print(f"* 默认设备: [{default['index']}] {default['name']}")
-            except Exception as e:
-                print("! 未找到默认输入设备")
+        p = pyaudio.PyAudio()
+        # with pyaudio.PyAudio() as p:
+            # 打印默认输入设备信息
+        print("\n=== 默认输入设备 ===")
+        try:
+            default = p.get_default_input_device_info()
+            print(f"* 默认设备: [{default['index']}] {default['name']}")
+        except Exception as e:
+            print("! 未找到默认输入设备")
 
-            # 打印默认输出设备信息
-            print("\n=== 默认输出设备 ===")
-            try:
-                default = p.get_default_output_device_info()
-                print(f"* 默认设备: [{default['index']}] {default['name']}")
-            except Exception as e:
-                print("! 未找到默认输出设备")
+        # 打印默认输出设备信息
+        print("\n=== 默认输出设备 ===")
+        try:
+            default = p.get_default_output_device_info()
+            print(f"* 默认设备: [{default['index']}] {default['name']}")
+        except Exception as e:
+            print("! 未找到默认输出设备")
 
-            print("\n=== 默认Loopback设备 ===")
-            try:
-                default = p.get_default_wasapi_loopback()
-                print(f"* 默认设备: [{default['index']}] {default['name']}")
-            except Exception as e:
-                print("! 未找到默认loopback设备")
+        print("\n=== 默认Loopback设备 ===")
+        try:
+            if sys.platform == "win32":
+                device = p.get_default_wasapi_loopback()  
+            else:
+                device = p.get_default_input_device_info()
+            print(f"* 默认设备: [{default['index']}] {default['name']}")
+        except Exception as e:
+            print("! 未找到默认loopback设备")
 
-            print("\n所有含有InputChannel的设备:")
-            for i in range(p.get_device_count()):
-                dev = p.get_device_info_by_index(i)
-                if dev["maxInputChannels"] > 0:
-                    print(f"[{dev['index']}] {dev['name']} (输入通道: {dev['maxInputChannels']})")
+        print("\n所有含有InputChannel的设备:")
+        for i in range(p.get_device_count()):
+            dev = p.get_device_info_by_index(i)
+            if dev["maxInputChannels"] > 0:
+                print(f"[{dev['index']}] {dev['name']} (输入通道: {dev['maxInputChannels']})")
 
-            print("\n所有含有OutputChannel的设备:")
-            for i in range(p.get_device_count()):
-                dev = p.get_device_info_by_index(i)
-                if dev["maxOutputChannels"] > 0:
-                    print(f"[{dev['index']}] {dev['name']} (输出通道: {dev['maxOutputChannels']})")
-            
-            print("\n所有含有Loopback的设备:")
-            for i in range(p.get_device_count()):
-                dev = p.get_device_info_by_index(i)
-                if dev["isLoopbackDevice"] > 0:
-                    print(f"[{dev['index']}] {dev['name']} (Loopback: {dev['maxInputChannels']})")
+        print("\n所有含有OutputChannel的设备:")
+        for i in range(p.get_device_count()):
+            dev = p.get_device_info_by_index(i)
+            if dev["maxOutputChannels"] > 0:
+                print(f"[{dev['index']}] {dev['name']} (输出通道: {dev['maxOutputChannels']})")
+        
+        print("\n所有含有Loopback的设备:")
+        for i in range(p.get_device_count()):
+            dev = p.get_device_info_by_index(i)
+            if dev.get("isLoopbackDevice") != None and dev["isLoopbackDevice"] > 0:
+                print(f"[{dev['index']}] {dev['name']} (Loopback: {dev['maxInputChannels']})")
+        
+        p.terminate()
+
 if __name__ == "__main__":
     # 列出设备
     LoopbackRecorder.list_devices()

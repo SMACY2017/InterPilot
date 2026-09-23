@@ -1,6 +1,5 @@
 PyQt5==5.15.11
 PyQt5_sip==12.17.0
-PyAudioWPatch==0.2.12.7
 openai==1.68.2
 openai-whisper==20240930
 markdown2==2.5.3
@@ -12,4 +11,5 @@ torch==2.6.0
 tqdm==4.67.1
 numpy==2.1.3
 requests==2.32.3
-pyaudiowpatch==0.2.12.7 
+pyaudiowpatch==0.2.12.7; sys_platform == 'win32'
+pyaudio==0.2.14; sys_platform != 'win32'
